@@ -12,17 +12,12 @@ use crate::prompt_preprocessor::preprocess_prompt;
 use crate::tool_interface::cli::Cli;
 use crate::tool_interface::commands::Commands;
 use crate::utilities::secret_manager;
-use anyhow::Result;
 use clap::Parser;
 use clipboard::{ClipboardContext, ClipboardProvider};
-use nano_vectordb_rs::{Data, NanoVectorDB, constants};
-use serde_json::json;
 use std::io::{self, Write};
-use tempfile::NamedTempFile;
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
-    test_nano_db();
     let cli = Cli::parse();
 
     match cli.command {
@@ -150,61 +145,3 @@ fn initial_set_up() -> Result<(), Box<dyn std::error::Error>> {
     }
 }
 
-fn test_nano_db() -> Result<(), Box<dyn std::error::Error>> {
-    // Create temporary storage file
-    let temp_file = NamedTempFile::new()?;
-    let db_path = temp_file.path().to_str().unwrap();
-    println!("Using temp file: {}", temp_file.path().display());
-    // Initialize database with 3-dimensional vectors
-    let mut db = NanoVectorDB::new(3, db_path)?;
-
-    // Create sample data with metadata
-    let samples = vec![
-        Data {
-            id: "vec1".into(),
-            vector: vec![1.02, 2.0, 3.0],
-            fields: [("color".into(), json!("red"))].into(),
-        },
-        Data {
-            id: "vec2".into(),
-            vector: vec![-4.0, 5.0, 6.0],
-            fields: [("color".into(), json!("blue"))].into(),
-        },
-        Data {
-            id: "vec3".into(),
-            vector: vec![7.0, 8.0, -9.0],
-            fields: [("color".into(), json!("green"))].into(),
-        },
-    ];
-
-    // Upsert data and show results
-    let (updated, inserted) = db.upsert(samples)?;
-    println!("Updated IDs: {:?}", updated);
-    println!("Inserted IDs: {:?}\n", inserted);
-
-    // Persist to disk
-    db.save()?;
-
-    // Query similar vectors
-    let query_vec = vec![0.1, 0.2, 0.3]; // Should be closest to vec1
-    let results = db.query(&query_vec, 1, None, None);
-
-    println!("Top 1 result:");
-    for result in results {
-        println!(
-            "- ID: {} | Color: {} | Score: {:.4}",
-            result[constants::F_ID],
-            result["color"],
-            result[constants::F_METRICS]
-        );
-    }
-
-    // Delete a vector
-    db.delete(&["vec3".into()]);
-    db.save()?;
-
-    println!("\nAfter deletion:");
-    println!("Total vectors: {}", db.len());
-
-    Ok(())
-}
