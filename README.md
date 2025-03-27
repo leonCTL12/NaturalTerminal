@@ -28,11 +28,11 @@ For now, this tool supports macOS only. Linux may be supported in the future.
    
     For zsh (default for mac, recommended)
     ```bash
-    zsh /opt/homebrew/Cellar/naturalterminal/1.0.1/setup-alias.sh
+    zsh /opt/homebrew/Cellar/naturalterminal/1.0.0/setup-alias.sh
     ```
    For bash
    ```bash
-    /opt/homebrew/Cellar/naturalterminal/1.0.1/setup-alias.sh
+    /opt/homebrew/Cellar/naturalterminal/1.0.0/setup-alias.sh
     ```
     
 3. Run this to set things up! Follow the instructions:
